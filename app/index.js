@@ -1,33 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { CameraView, Camera } from 'expo-camera';
+import React, { useState } from "react";
+import { View, Text, Button, StyleSheet } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
 
 export default function App() {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [cameraActive, setCameraActive] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [isCameraActive, setIsCameraActive] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  if (hasPermission === null) {
-    return <View style={styles.container}><Text>Requesting camera permission...</Text></View>;
+  if (!permission) {
+    return <Text>Checking permissions...</Text>;
   }
-  if (hasPermission === false) {
-    return <View style={styles.container}><Text>No access to camera</Text></View>;
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text>Camera access is required to use this feature.</Text>
+        <Button title="Grant Permission" onPress={requestPermission} />
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      {cameraActive ? (
+      {isCameraActive ? (
         <CameraView style={styles.camera} />
       ) : (
-        <Text>Camera is Off</Text>
+        <Text>Press the button to open the camera</Text>
       )}
-      <Button title={cameraActive ? "Close Camera" : "Open Camera"} onPress={() => setCameraActive(!cameraActive)} />
+      <Button
+        title={isCameraActive ? "Close Camera" : "Open Camera"}
+        onPress={() => setIsCameraActive((prev) => !prev)}
+      />
     </View>
   );
 }
@@ -35,11 +37,11 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   camera: {
-    width: '100%',
-    height: '80%',
-  }
+    width: "100%",
+    height: "80%",
+  },
 });
